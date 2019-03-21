@@ -61,6 +61,12 @@ export class CreateEmployeeComponent implements OnInit {
       this.fullNameLength = value.length;
       console.log(value);
     });
+
+    // When any of the form control value in employee form changes
+  // our validation function logValidationErrors() is called
+  this.employeeForm.valueChanges.subscribe((data) => {
+    this.logValidationError(this.employeeForm);
+  });
   }
   logKeyValuePair(group: FormGroup): void {
     Object.keys(group.controls).forEach((key: string) => {
@@ -74,7 +80,7 @@ export class CreateEmployeeComponent implements OnInit {
     });
 
   }
-  logValidationError(group: FormGroup): void {
+  logValidationError(group: FormGroup= this.employeeForm): void {
     Object.keys(group.controls).forEach((key: string) => {
       const abstractControl = group.get(key);
       if (abstractControl instanceof FormGroup) {
@@ -82,7 +88,8 @@ export class CreateEmployeeComponent implements OnInit {
       }
       else {
         this.formErrors[key]="";
-        if (abstractControl && !abstractControl.valid) {
+        if (abstractControl && !abstractControl.valid && 
+          (abstractControl.touched || abstractControl.dirty)) {
           const messages = this.validationMessages[key];
           for (const errorKey in abstractControl.errors) {
             if (errorKey) {
