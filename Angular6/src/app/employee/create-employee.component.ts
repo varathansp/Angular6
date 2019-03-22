@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, FormBuilder, Validators, AbstractControl } from '@angular/forms'
+import { CustomValidators } from '../shared/custom.validators'
 
 @Component({
   selector: 'app-create-employee',
@@ -57,7 +58,7 @@ export class CreateEmployeeComponent implements OnInit {
     this.employeeForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(15)]],
       contactPreference: ['email'],
-      email: ['', [Validators.required,emailDomain]],
+      email: ['', [Validators.required, CustomValidators.emailDomainPara('yahoo.com')]],
       phone: [''],
       skills: this.fb.group({
         skillName: ['', Validators.required],
@@ -146,14 +147,15 @@ export class CreateEmployeeComponent implements OnInit {
   }
 
 }
-function emailDomain(control: AbstractControl): {[key:string]:any} | null{
- const emailValue:string =control.value;
- const domainValue=emailValue.substring(emailValue.lastIndexOf('@')+1);
- if(domainValue==='' || domainValue==='gmail.com'){
-   return null;
- }
- else{
-  return {'emailDomain':true}
- }
-  
+function emailDomain(control: AbstractControl): { [key: string]: any } | null {
+  const emailValue: string = control.value;
+  const domainValue = emailValue.substring(emailValue.lastIndexOf('@') + 1);
+  if (domainValue === '' || domainValue === 'gmail.com') {
+    return null;
+  }
+  else {
+    return { 'emailDomain': true }
+  }
+
 }
+
