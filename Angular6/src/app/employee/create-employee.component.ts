@@ -20,6 +20,12 @@ export class CreateEmployeeComponent implements OnInit {
       'required': 'Email is required.',
       'emailDomain': 'Email domain should be gmail.com'
     },
+    'confirmEmail': {
+      'required': 'confirmEmail is required.'
+    },
+    'emailGroup': {
+      'emailMisMatch': 'email and confirmEmail do not match.'
+    },
     'phone': {
       'required': 'Phone is required.',
     },
@@ -37,6 +43,8 @@ export class CreateEmployeeComponent implements OnInit {
   formErrors = {
     'fullName': '',
     'email': '',
+    'confirmEmail': '',
+    'emailGroup':'',
     'phone': '',
     'skillName': '',
     'experienceInYears': '',
@@ -58,7 +66,11 @@ export class CreateEmployeeComponent implements OnInit {
     this.employeeForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(15)]],
       contactPreference: ['email'],
-      email: ['', [Validators.required, CustomValidators.emailDomainPara('yahoo.com')]],
+      emailGroup: this.fb.group({
+        email: ['', [Validators.required, CustomValidators.emailDomainPara('gmail.com')]],
+        confirmEmail: ['', Validators.required]
+      },{validator:matchEmail}),
+
       phone: [''],
       skills: this.fb.array([
         this.addSkillFormGroup()
@@ -94,11 +106,8 @@ export class CreateEmployeeComponent implements OnInit {
   logValidationError(group: FormGroup = this.employeeForm): void {
     Object.keys(group.controls).forEach((key: string) => {
       const abstractControl = group.get(key);
-      if (abstractControl instanceof FormGroup) {
-        this.logValidationError(abstractControl);
-      }
-      else {
-        this.formErrors[key] = "";
+      
+      this.formErrors[key] = "";
         if (abstractControl && !abstractControl.valid &&
           (abstractControl.touched || abstractControl.dirty)) {
           const messages = this.validationMessages[key];
@@ -108,7 +117,11 @@ export class CreateEmployeeComponent implements OnInit {
             }
           }
         }
+
+      if (abstractControl instanceof FormGroup) {
+        this.logValidationError(abstractControl);
       }
+     
     });
   }
   addSkillFormGroup():FormGroup{
@@ -163,5 +176,16 @@ function emailDomain(control: AbstractControl): { [key: string]: any } | null {
     return { 'emailDomain': true }
   }
 
+}
+
+function matchEmail(group: FormGroup): { [key: string]: any } | null {
+  const emailControl = group.get('email');
+  const confirmEmilControl = group.get('confirmEmail');
+  if (emailControl.value === confirmEmilControl.value || confirmEmilControl.pristine || confirmEmilControl.value=='' ) {
+    return null;
+  }
+  else {
+    return { 'emailMisMatch': true };
+  }
 }
 
