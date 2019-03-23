@@ -60,11 +60,9 @@ export class CreateEmployeeComponent implements OnInit {
       contactPreference: ['email'],
       email: ['', [Validators.required, CustomValidators.emailDomainPara('yahoo.com')]],
       phone: [''],
-      skills: this.fb.group({
-        skillName: ['', Validators.required],
-        experienceInYears: ['', Validators.required],
-        proficiency: ['', Validators.required]
-      })
+      skills: this.fb.array([
+        this.addSkillFormGroup()
+      ])
     });
     this.employeeForm.get('fullName').valueChanges.subscribe((value: string) => {
       this.fullNameLength = value.length;
@@ -112,6 +110,14 @@ export class CreateEmployeeComponent implements OnInit {
         }
       }
     });
+  }
+  addSkillFormGroup():FormGroup{
+    return this.fb.group({
+      skillName: ['', Validators.required],
+      experienceInYears: ['', Validators.required],
+      proficiency: ['', Validators.required]
+    });
+      
   }
   onContactPrefereceChange(selectedValue: string): void {
     const phoneControl = this.employeeForm.get('phone');
