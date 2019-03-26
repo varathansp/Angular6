@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, FormBuilder, Validators, AbstractControl, FormArray } from '@angular/forms'
 import { CustomValidators } from '../shared/custom.validators'
-import { ActivatedRoute } from '@angular/router'
-import { IEmployee} from './IEmployee'
-import { ISkill} from './ISkill'
-import {EmployeeService } from './employee.service'
+import { ActivatedRoute, Router } from '@angular/router'
+import { IEmployee } from './IEmployee'
+import { ISkill } from './ISkill'
+import { EmployeeService } from './employee.service'
 @Component({
   selector: 'app-create-employee',
   templateUrl: './create-employee.component.html',
@@ -13,6 +13,7 @@ import {EmployeeService } from './employee.service'
 export class CreateEmployeeComponent implements OnInit {
   employeeForm: FormGroup;
   fullNameLength = 0;
+  employee:IEmployee;
   validationMessages = {
     'fullName': {
       'required': 'Full Name is required.',
@@ -54,7 +55,7 @@ export class CreateEmployeeComponent implements OnInit {
     // 'proficiency': ''
   };
 
-  constructor(private fb: FormBuilder,private _activatedRoute:ActivatedRoute,private _employeeService:EmployeeService ) { }
+  constructor(private fb: FormBuilder, private _activatedRoute: ActivatedRoute, private _employeeService: EmployeeService,private _router:Router) { }
 
   ngOnInit() {
     // this.employeeForm = new FormGroup({
@@ -94,20 +95,23 @@ export class CreateEmployeeComponent implements OnInit {
       this.onContactPrefereceChange(data);
     });
 
-    this._activatedRoute.paramMap.subscribe(params=>{
-      const empId=+params.get('id');
-      if(empId){
+    this._activatedRoute.paramMap.subscribe(params => {
+      const empId = +params.get('id');
+      if (empId) {
         this.getEmployee(empId);
       }
     });
   }
-  getEmployee(empId:number){
-this._employeeService.getEmployee(empId).subscribe(
-  (employee:IEmployee)=>this.editEmployee(employee),
-  (err)=>console.log(err)
-);
+  getEmployee(empId: number) {
+    this._employeeService.getEmployee(empId).subscribe(
+      (employee: IEmployee) => {
+        this.editEmployee(employee);
+        this.employee=employee
+      },
+      (err) => console.log(err)
+    );
   }
-  editEmployee(employee:IEmployee){
+  editEmployee(employee: IEmployee) {
     this.employeeForm.patchValue({
       fullName: employee.fullName,
       contactPreference: employee.contactPreference,
@@ -117,6 +121,20 @@ this._employeeService.getEmployee(empId).subscribe(
       },
       phone: employee.phone
     });
+
+    this.employeeForm.setControl('skills', this.setExistingSkills(employee.skills));
+  }
+  setExistingSkills(skillSets: ISkill[]): FormArray {
+    const formArray = new FormArray([]);
+    skillSets.forEach(s => {
+      formArray.push(this.fb.group({
+        skillName: s.skillName,
+        experienceInYears: s.experienceInYears,
+        proficiency: s.proficiency
+      }));
+
+    });
+    return formArray;
   }
   addSkillButtonClick() {
     (<FormArray>this.employeeForm.get('skills')).push(this.addSkillFormGroup());
@@ -169,7 +187,10 @@ this._employeeService.getEmployee(empId).subscribe(
 
   }
   removeSkillButtonClick(skillGroupIndex: number): void {
-    (<FormArray>this.employeeForm.get('skills')).removeAt(skillGroupIndex);
+   const skillsFormArray= (<FormArray>this.employeeForm.get('skills'));
+   skillsFormArray.removeAt(skillGroupIndex);
+   skillsFormArray.markAsDirty();
+   skillsFormArray.markAsTouched(); 
   }
   onContactPrefereceChange(selectedValue: string): void {
     const phoneControl = this.employeeForm.get('phone');
@@ -202,6 +223,18 @@ this._employeeService.getEmployee(empId).subscribe(
   }
   onSubmit(): void {
     console.log(this.employeeForm.value);
+    this.mapFormValuesToEmployeeModel();
+    this._employeeService.updateEmployee(this.employee).subscribe(
+      ()=>this._router.navigate(['list']),
+      (err)=>console.log(err)
+    );
+  }
+  mapFormValuesToEmployeeModel() {
+    this.employee.fullName = this.employeeForm.value.fullName;
+    this.employee.contactPreference = this.employeeForm.value.contactPreference;
+    this.employee.email = this.employeeForm.value.emailGroup.email;
+    this.employee.phone = this.employeeForm.value.phone;
+    this.employee.skills = this.employeeForm.value.skills;
   }
 
 }
@@ -223,7 +256,7 @@ function matchEmail(group: FormGroup): { [key: string]: any } | null {
   if (emailControl.value === confirmEmilControl.value
     || (confirmEmilControl.pristine && confirmEmilControl.value === '')) {
     return null;
-  } 
+  }
   else {
     return { 'emailMisMatch': true };
   }
