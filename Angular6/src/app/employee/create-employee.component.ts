@@ -14,6 +14,7 @@ export class CreateEmployeeComponent implements OnInit {
   employeeForm: FormGroup;
   fullNameLength = 0;
   employee:IEmployee;
+  pageTitle:string;
   validationMessages = {
     'fullName': {
       'required': 'Full Name is required.',
@@ -98,7 +99,19 @@ export class CreateEmployeeComponent implements OnInit {
     this._activatedRoute.paramMap.subscribe(params => {
       const empId = +params.get('id');
       if (empId) {
+        this.pageTitle="Edit Employee";
         this.getEmployee(empId);
+      }
+      else {
+        this.pageTitle="Create Employee";
+        this.employee = {
+          id: null,
+          fullName: '',
+          contactPreference: '',
+          email: '',
+          phone: null,
+          skills: []
+        };
       }
     });
   }
@@ -224,10 +237,18 @@ export class CreateEmployeeComponent implements OnInit {
   onSubmit(): void {
     console.log(this.employeeForm.value);
     this.mapFormValuesToEmployeeModel();
-    this._employeeService.updateEmployee(this.employee).subscribe(
-      ()=>this._router.navigate(['list']),
-      (err)=>console.log(err)
-    );
+    if(this.employee.id){
+      this._employeeService.updateEmployee(this.employee).subscribe(
+        ()=>this._router.navigate(['employees']),
+        (err)=>console.log(err)
+      );
+    }else{
+      this._employeeService.addEmployee(this.employee).subscribe(
+        ()=>this._router.navigate(['employees']),
+        (err)=>console.log(err)
+      );
+    }
+    
   }
   mapFormValuesToEmployeeModel() {
     this.employee.fullName = this.employeeForm.value.fullName;

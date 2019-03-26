@@ -3,7 +3,7 @@
     {
       "id": 1,
       "fullName": "Mark",
-      "contactPreference": "email",
+      "contactPreference": "phone",
       "email": "mark@gmail.com",
       "phone": "5641238971",
       "skills": [
@@ -45,6 +45,20 @@
           "skillName": "LINQ",
           "experienceInYears": 3,
           "proficiency": "advanced"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "fullName": "Varathan",
+      "contactPreference": "email",
+      "email": "varathansuyambu@gmail.com",
+      "phone": "9988997767",
+      "skills": [
+        {
+          "skillName": "c#",
+          "experienceInYears": "3",
+          "proficiency": "intermediate"
         }
       ]
     }
